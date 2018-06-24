@@ -8,7 +8,6 @@
 #   This will exit qfter the first assertion.
 
 import torch
-from torch.autograd import Variable
 
 import numpy as np
 import numpy.random as npr
@@ -72,7 +71,7 @@ def get_grads_torch(Q, p, G, h, A, b, truez):
     if cuda:
         Q, p, G, h, A, b, truez = [x.cuda() for x in [Q, p, G, h, A, b, truez]]
 
-    Q, p, G, h, A, b = [Variable(x) for x in [Q, p, G, h, A, b]]
+    Q, p, G, h, A, b = [x for x in [Q, p, G, h, A, b]]
     for x in [Q, p, G, h]:
         x.requires_grad = True
 
@@ -282,7 +281,7 @@ def test_sparse_forward():
     sys.excepthook = ultratb.FormattedTB(mode='Verbose',
                                          color_scheme='Linux', call_pdb=1)
     xhats0_cp = qpth.qp.QPFunction(solver=qpth.qp.QPSolvers.CVXPY)(
-        *[Variable(y) for y in
+        *[y for y in
           [Q0.to_dense(), p[0], G0.to_dense(), h[0], A0.to_dense(), b[0]]]).data.squeeze()
 
     xhats, nus, lams, slacks = pdipm_spb.forward(Qi, Qv, Qsz, p, Gi, Gv, Gsz, h,
@@ -291,7 +290,7 @@ def test_sparse_forward():
     npt.assert_allclose(xhats0_cp.cpu().numpy(),
                         xhats[0].cpu().numpy(), rtol=RTOL, atol=ATOL)
 
-    Qv, p, Gv, h, Av, b = [Variable(x) for x in [Qv, p, Gv, h, Av, b]]
+    Qv, p, Gv, h, Av, b = [x for x in [Qv, p, Gv, h, Av, b]]
     xhats_qpf = qpth.qp.SpQPFunction(Qi, Qsz, Gi, Gsz, Ai, Asz)(
         Qv, p, Gv, h, Av, b
     ).data
@@ -330,9 +329,9 @@ def test_sparse_backward():
     b = h[:, :neq].clone()
 
     p = cast(torch.randn(nBatch, nx))
-    truex = Variable(cast(torch.randn(nBatch, nx)))
+    truex = cast(torch.randn(nBatch, nx))
 
-    Qv, p, Gv, h, Av, b = [Variable(x) for x in [Qv, p, Gv, h, Av, b]]
+    Qv, p, Gv, h, Av, b = [x for x in [Qv, p, Gv, h, Av, b]]
     for x in [Qv, p, Gv, h, Av, b]:
         x.requires_grad = True
     xhats = qpth.qp.SpQPFunction(Qi, Qsz, Gi, Gsz, Ai, Asz)(
@@ -350,7 +349,7 @@ def test_sparse_backward():
     h0 = h[0].data
     A0 = A0.to_dense()
     b0 = b[0].data
-    Q0, p0, G0, h0, A0, b0 = [Variable(y) for y in [Q0, p0, G0, h0, A0, b0]]
+    Q0, p0, G0, h0, A0, b0 = [y for y in [Q0, p0, G0, h0, A0, b0]]
     for x in [Q0, p0, G0, h0, A0, b0]:
         x.requires_grad = True
     xhats_dense = qpth.qp.QPFunction()(Q0, p0, G0, h0, A0, b0)
